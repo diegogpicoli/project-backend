@@ -1,5 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 
+import { verify } from "jsonwebtoken";
+
+interface PayLoad {
+  sub: string;
+}
+
 const tokenValidation = async (req: Request, res: Response, next: NextFunction ) => {
   const token = req.headers.authorization
 
@@ -7,7 +13,14 @@ const tokenValidation = async (req: Request, res: Response, next: NextFunction )
     return res.status(401).end()
   }
 
-  next()
+  try {
+    const { sub } = verify(token, process.env.JWT_SECRET) as PayLoad
+
+    req.user_id = sub
+    return next()
+  } catch (error) {
+    return res.status(401).end()
+  }
 }
 
 export {
